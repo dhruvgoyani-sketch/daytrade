@@ -1,0 +1,86 @@
+{
+  "CELH": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2000.0,
+    "persistence": 2
+  },
+  "SPX": {
+    "thresh5": 0.3,
+    "thresh15": 0.201,
+    "minV5": 1000.0,
+    "minV15": 3500.0,
+    "persistence": 2,
+    "mny_band": 0.02,
+    "view_band_pct":2.0
+  },
+  "QQQ": {
+    "thresh5": 0.4,
+    "thresh15": 0.25,
+    "minV5": 4000.0,
+    "minV15": 6000.0,
+    "persistence": 2,
+    "mny_band": 0.02,
+    "view_band_pct":2.0
+  },
+  "PLTR": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2000.0,
+    "persistence": 2
+  },
+  "IWM": {
+    "thresh5": 0.6,
+    "thresh15": 0.489,
+    "minV5": 1008.0,
+    "minV15": 2768.0,
+    "persistence": 2
+  },
+  "NVDA": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1073.0,
+    "minV15": 2721.0,
+    "persistence": 2
+  },
+  "AAPL": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2390.0,
+    "persistence": 2
+  },
+  "TSLA": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 800.0,
+    "minV15": 1600.0,
+    "persistence": 2,
+    "hold_minV15": 1200.0,
+    "hold_thresh15": 0.45,
+    "hold_persistence": 3
+  },
+  "AMD": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2000.0,
+    "persistence": 2
+  },
+  "GTLB": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2000.0,
+    "persistence": 2
+  },
+  "FSLR": {
+    "thresh5": 0.6,
+    "thresh15": 0.6,
+    "minV5": 1000.0,
+    "minV15": 2000.0,
+    "persistence": 2
+  }
+}

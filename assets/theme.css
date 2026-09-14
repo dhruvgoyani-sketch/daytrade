@@ -1,0 +1,269 @@
+#page-root {
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body {
+  margin: 0;
+  background-color: #0b111a;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+#page-root.theme-dark {
+  background-color: #0b111a;
+  color: #e6edf8;
+  color-scheme: dark;
+}
+
+#page-root.theme-light {
+  background-color: #ffffff;
+  color: #1f2933;
+  color-scheme: light;
+}
+
+#page-root.theme-dark a {
+  color: #4aa3ff;
+}
+
+#page-root.theme-light a {
+  color: #0b5ed7;
+}
+
+#page-root.theme-dark input,
+#page-root.theme-dark textarea,
+#page-root.theme-dark select,
+#page-root.theme-dark button,
+#page-root.theme-dark .dash-table-container .dash-cell-value {
+  background-color: #151d2f;
+  color: #e6edf8;
+  border: 1px solid #2f3a52;
+}
+
+#page-root.theme-dark button {
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: #213452;
+  color: #f0f4ff;
+  border: 1px solid #39506f;
+  box-shadow: 0 4px 12px rgba(8, 13, 24, 0.45);
+}
+
+#page-root.theme-dark button:hover {
+  background-color: #294363;
+}
+
+#page-root.theme-dark .Select-control,
+#page-root.theme-dark .Select-menu-outer,
+#page-root.theme-dark .Select-menu,
+#page-root.theme-dark .VirtualizedSelectOption {
+  background-color: #111a2b !important;
+  color: #e6edf8;
+  border: 1px solid #31435d !important;
+  box-shadow: none;
+}
+
+#page-root.theme-dark .Select-control {
+  min-height: 28px;
+  box-shadow: none;
+  transition: border-color 0.15s ease;
+}
+
+#page-root.theme-dark .Select-control:hover {
+  border-color: #4a6fb1 !important;
+}
+
+#page-root.theme-dark .Select-control.Select--single.is-open,
+#page-root.theme-dark .Select-control.Select--single.is-focused,
+#page-root.theme-dark .Select-control:focus {
+  border-color: #4a6fb1 !important;
+  box-shadow: 0 0 0 1px rgba(74, 111, 177, 0.55);
+}
+
+#page-root.theme-dark .Select--single > .Select-control .Select-value {
+  color: #e6edf8;
+  background-color: transparent;
+  border-right: none;
+}
+
+#page-root.theme-dark .Select-input,
+#page-root.theme-dark .Select-input > input {
+  background-color: transparent !important;
+  color: #e6edf8 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#page-root.theme-dark .Select-placeholder {
+  color: #a3b4d6;
+}
+
+#page-root.theme-dark .Select-arrow {
+  border-top-color: #e6edf8;
+}
+
+#page-root.theme-dark .Select-value {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#page-root.theme-dark .Select-value-label {
+  color: #e6edf8 !important;
+}
+
+#page-root.theme-dark .Select-arrow-zone,
+#page-root.theme-dark .Select-clear-zone {
+  background-color: transparent !important;
+}
+
+#page-root.theme-dark .dash-table-container {
+  background-color: rgba(21, 29, 47, 0.75);
+  border: 1px solid #2f3a52;
+}
+
+#page-root.theme-dark .dash-table-container .dash-header {
+  background-color: #1c2438 !important;
+  color: #cbd6ee !important;
+}
+
+#page-root.theme-dark .tab {
+  background-color: #141d2c;
+  color: #e6edf8;
+  border: 1px solid #1d273a;
+  padding: 4px 12px;
+  min-height: 28px;
+  line-height: 18px;
+}
+
+#page-root.theme-dark .tab--selected {
+  background-color: #1d273a;
+  border-bottom: 2px solid #4aa3ff;
+  color: #ffffff;
+  padding: 4px 12px;
+  min-height: 28px;
+  line-height: 18px;
+}
+
+#page-root.theme-dark .tab:hover {
+  background-color: #23334a;
+}
+
+#page-root.theme-light .tab {
+  background-color: #f7f9fc;
+  color: #1f2933;
+  border: 1px solid #d8dee9;
+  padding: 4px 12px;
+  min-height: 28px;
+  line-height: 18px;
+}
+
+#page-root.theme-light .tab--selected {
+  background-color: #ffffff;
+  border-bottom: 2px solid #0b5ed7;
+  padding: 4px 12px;
+  min-height: 28px;
+  line-height: 18px;
+}
+
+#page-root.theme-dark .dash-table-container .dash-table {
+  background-color: transparent;
+}
+
+#page-root.theme-dark .dash-table-container .dash-spreadsheet-container {
+  background-color: transparent;
+}
+
+#page-root.theme-dark .dash-spreadsheet-container table {
+  background-color: transparent;
+  color: #e6edf8;
+  border-color: #2f3a52;
+}
+
+#page-root.theme-dark .dash-spreadsheet-container td,
+#page-root.theme-dark .dash-spreadsheet-container th {
+  background-color: #10192a;
+  color: #e6edf8;
+  border-color: #2f3a52;
+}
+
+#page-root.theme-dark .dash-spreadsheet-container td.dash-cell-focus {
+  background-color: #1b2a40;
+  color: #ffffff;
+}
+
+#page-root.theme-dark .dash-spreadsheet-container td.dash-cell:hover {
+  background-color: #1a2539;
+}
+
+#page-root.theme-dark .dash-table-container dcc-tooltip,
+#page-root.theme-dark .dash-table-tooltip {
+  color: #e6edf8;
+}
+
+#page-root.theme-dark .Checkbox label,
+#page-root.theme-dark .CheckBox label,
+#page-root.theme-dark label {
+  color: #d2dbf3;
+}
+
+#page-root.theme-light input,
+#page-root.theme-light textarea,
+#page-root.theme-light select,
+#page-root.theme-light button {
+  background-color: #ffffff;
+  color: #1f2933;
+  border: 1px solid #c5cedd;
+}
+
+#page-root.theme-dark #exec-buy,
+#page-root.theme-light #exec-buy {
+  background-color: #1f8b4c;
+  border: 1px solid #27ae60;
+  color: #ffffff;
+}
+
+#page-root.theme-dark #exec-buy:disabled,
+#page-root.theme-light #exec-buy:disabled {
+  background-color: #245c3a;
+  border-color: #2f6b46;
+  color: rgba(255,255,255,0.6);
+}
+
+#page-root.theme-dark #exec-sell,
+#page-root.theme-light #exec-sell {
+  background-color: #c0392b;
+  border: 1px solid #e74c3c;
+  color: #ffffff;
+}
+
+#page-root.theme-dark #exec-sell:disabled,
+#page-root.theme-light #exec-sell:disabled {
+  background-color: #7f2b22;
+  border-color: #a64135;
+  color: rgba(255,255,255,0.6);
+}
+
+#page-root.theme-dark #dt-force-flat,
+#page-root.theme-light #dt-force-flat {
+  background-color: #4c596c;
+  border: 1px solid #5f7087;
+  color: #f7fafc;
+}
+
+#page-root.theme-dark #dt-force-flat:disabled,
+#page-root.theme-light #dt-force-flat:disabled {
+  background-color: #2d3644;
+  border-color: #3d485a;
+  color: rgba(255,255,255,0.5);
+}
+
+#page-root.theme-light button {
+  background-color: #f5f7fa;
+  border: 1px solid #cbd3df;
+  color: #1f2933;
+  box-shadow: 0 0 4px rgba(0,0,0,0.12);
+}
+
+#page-root.theme-light button:hover {
+  background-color: #e6ecf5;
+}

@@ -1,0 +1,14 @@
+# Python 3.13 recommended (developed on 3.13.7)
+# Pinned to versions known to work with this project.
+
+dash==3.2.0
+numpy==2.3.3
+pandas==2.3.3
+plotly==6.3.1
+requests==2.32.5
+
+# convexlib: client for the Convex Value options-flow API (provides ConvexApi).
+# This is the data source for all volmbs (net aggressor volume) fields.
+# It is NOT on public PyPI — install it from your Convex Value account / private
+# index. The version this project was built against:
+#   convexlib==0.1.1
