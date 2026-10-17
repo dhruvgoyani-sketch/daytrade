@@ -14,7 +14,7 @@ res = {}
 df = ps.load_spx()
 df = ps.add_forward(df, 0)
 days = df["day"].to_numpy()
-cad = 14.994177103042603
+cad = json.load(open(os.path.join(OUT, "stats.json")))["cadence_med_s"]
 
 # ---- (R2.5) day accounting ----
 alld = sorted(df["day"].unique())
@@ -91,7 +91,7 @@ res["decomposition"] = dec
 # ---- (R2.4) minimum detectable effect, D days, 80% power, two-sided 5% ----
 mde = []
 for r in dec:
-    D = 150
+    D = int(edge.loc[edge.horizon == r["H"], "cl_D"].iloc[0])
     tc = sps.t.ppf(0.975, D - 1); tp = sps.t.ppf(0.80, D - 1)
     mde.append(dict(H=r["H"], se_day=r["se_day"], mde=(tc + tp) * r["se_day"],
                     sd_daily=r["se_day"] * math.sqrt(D)))
