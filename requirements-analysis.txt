@@ -1,0 +1,5 @@
+# Extra dependencies for analysis/ (paper statistics and figures).
+# Install with: pip install -r requirements.txt -r requirements-analysis.txt
+scipy>=1.11
+matplotlib>=3.8
+pyarrow>=14
