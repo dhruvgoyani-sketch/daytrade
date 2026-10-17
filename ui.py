@@ -527,7 +527,7 @@ def _format_trades_for_table(trades: list[dict], limit: Optional[int] = None):
         {"name": "Exit", "id": "exit_time"},
         {"name": "Entry Spot", "id": "entry_spot"},
         {"name": "Exit Spot", "id": "exit_spot"},
-        {"name": "PnL", "id": "pnl"},
+        {"name": "SPX points", "id": "pnl"},
         {"name": "Hold (min)", "id": "hold_min"},
         {"name": "Entry V5", "id": "entry_v5"},
         {"name": "Entry V15", "id": "entry_v15"},
@@ -1292,14 +1292,14 @@ def update_trade_details(n_intervals, n_clicks, ticker):
     stats = _summarize_trades(trades)
     summary_lines = [
         f"Trades: {stats['total']} — Wins: {stats['wins']} ({stats['win_rate']:.1f}%) • Losses: {stats['losses']} • Flats: {stats['flats']}",
-        f"Net PnL: {stats['net']:+.2f} — Avg win: {stats['avg_win']:+.2f} • Avg loss: {stats['avg_loss']:+.2f}",
+        f"Net SPX points: {stats['net']:+.2f} — Avg win: {stats['avg_win']:+.2f} • Avg loss: {stats['avg_loss']:+.2f}",
         f"Best: {stats['best']:+.2f} • Worst: {stats['worst']:+.2f} • Avg hold: {stats['avg_hold']:.1f} min",
     ]
     last_trade = trades[-1]
     ny = ZoneInfo("America/New_York")
     summary_lines.append(
         f"Last trade: {last_trade['side'].upper()} {last_trade['entry_dt'].astimezone(ny).strftime('%H:%M:%S')} → "
-        f"{last_trade['exit_dt'].astimezone(ny).strftime('%H:%M:%S')}  PnL={last_trade['pnl']:+.2f}"
+        f"{last_trade['exit_dt'].astimezone(ny).strftime('%H:%M:%S')}  SPX points={last_trade['pnl']:+.2f}"
     )
     summary = html.Ul([html.Li(line) for line in summary_lines])
     columns, data = _format_trades_for_table(trades, limit=30)
@@ -1401,7 +1401,7 @@ def on_dt_tick(n_intervals, n_clicks, force_clicks, ticker, exp_count, weighting
         pnl_total = float(pos_next.get('pnl_total', pnl_realized + pnl_unreal))
         status_weekend = html.Span([
             "Weekend • market closed • ",
-            f"PnL={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f})",
+            f"SPX points={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f})",
         ])
         ctx_next = ctx_series if isinstance(ctx_series, dict) else {}
         return (
@@ -1448,7 +1448,7 @@ def on_dt_tick(n_intervals, n_clicks, force_clicks, ticker, exp_count, weighting
                 pnl_total = float(pos_next.get('pnl_total', pnl_realized + pnl_unreal))
                 status_closed = (
                     "Market closed • polling stopped at 16:00 NY "
-                    f"• PnL={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f})"
+                    f"• SPX points={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f})"
                 )
                 ctx_next = ctx_series if isinstance(ctx_series, dict) else {}
                 return (
@@ -2179,7 +2179,7 @@ def on_dt_tick(n_intervals, n_clicks, force_clicks, ticker, exp_count, weighting
         f"  strength={strength_active:.2f}  agree={agree}  spot(auto)={spot:.2f} ",
         f"• mode={mode_label} ",
         f"• expiries={int(exp_count or 7)}{dte_badge}{iv_badge} ",
-        f"• PnL={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f}) ",
+        f"• SPX points={pnl_total:+.2f} (R={pnl_realized:+.2f}, U={pnl_unreal:+.2f}) ",
         #f"• logs: {logdir_status}",
     ]
     if total_polls > 0:
