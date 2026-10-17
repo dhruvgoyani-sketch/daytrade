@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 paper_stats.py -- single source of truth for every statistic in the paper
-"Does Aggressor Option Flow Predict Intraday S&P 500 Returns?" (SPX only).
+"Overlapping-Observation t-Inflation in Evaluating Algorithmic Intraday Trading
+Signals: A Reproducible Null on S&P 500 Option Flow" (SPX only).
 
 Reads  : logs/daytrade-*/SPX.jsonl   (the engine's own per-poll diagnostic logs)
-Writes : analysis/paper_stats/*.csv  + stats.json (headline numbers cited in the tex)
+Writes : analysis/paper_stats/*.csv  + stats.json (headline numbers cited in the paper)
          analysis/paper_stats/polls.parquet (cached per-poll table)
 
-Conventions are IDENTICAL to the repo's original scripts
-(analysis/analyze_logs.py, analysis/robust_analysis.py):
+Conventions:
   * a poll is valid iff the JSON line parses and has ts_ny and spot>0;
   * signal = decision.signal (post-gate, post-wall-veto, post-hysteresis);
   * forward return r_{t,H} = 1e4*(S_{t+H}/S_t - 1), S_{t+H} = spot of the first
