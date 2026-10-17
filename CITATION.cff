@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this code or its results, please cite the paper below."
+title: "daytrade: code and results for Overlapping-Observation t-Inflation in Evaluating Algorithmic Intraday Trading Signals"
+authors:
+  - family-names: Goyani
+    given-names: Dhruv
+repository-code: "https://github.com/dhruvgoyani-sketch/daytrade"
+license: Apache-2.0
+preferred-citation:
+  type: conference-paper
+  title: "Overlapping-Observation t-Inflation in Evaluating Algorithmic Intraday Trading Signals: A Reproducible Null on S&P 500 Option Flow"
+  authors:
+    - family-names: Goyani
+      given-names: Dhruv
+  collection-title: "2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT)"
+  conference:
+    name: "2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT)"
+  publisher:
+    name: IEEE
+  year: 2026
+  month: 10
