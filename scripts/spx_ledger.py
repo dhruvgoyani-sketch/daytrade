@@ -25,6 +25,7 @@ import os
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone, date
+from zoneinfo import ZoneInfo
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 try:
@@ -49,7 +50,7 @@ DEFAULT_ENV = os.environ.get("CONVEX_ENV", "live")
 
 
 def _ny_now() -> datetime:
-    return datetime.now(timezone.utc).astimezone().replace(microsecond=0)
+    return datetime.now(ZoneInfo("America/New_York")).replace(microsecond=0)
 
 
 def _today_ny() -> date:

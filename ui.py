@@ -2832,4 +2832,4 @@ def on_iv_delta(df_json, spot_val, prev, theme_value):
 
 if __name__ == "__main__":
     # Fixed port 8052 as requested
-    app.run(debug=True, port=8052, use_reloader=False)
+    app.run(debug=os.environ.get("DAYTRADE_DEBUG") == "1", port=8052, use_reloader=False)

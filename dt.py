@@ -1665,7 +1665,7 @@ def main() -> None:
                     _sys.path.insert(0, str(pkg_dir))
                 ui_mod = importlib.import_module("ui")
             print("Starting Daytrade UI on http://127.0.0.1:8052 …")
-            ui_mod.app.run(debug=True, port=8052, use_reloader=False)
+            ui_mod.app.run(debug=os.environ.get("DAYTRADE_DEBUG") == "1", port=8052, use_reloader=False)
             return
         except Exception as e:
             print(f"Failed to start UI: {e}")
@@ -2103,8 +2103,8 @@ def update_iv_ctx_for_ticker(ticker: str, df: pd.DataFrame, spot: float) -> Dict
         try:
             # choose expiry nearest 14D
             today_d = now_ny().date()
-            dfe['dte'] = (pd.to_datetime(dfe['exp_date']) - pd.Timestamp(today_d)).dt.days.abs()
-            ed_near = dfe.sort_values('dte').iloc[0]['exp_date']
+            dfe['dte'] = (pd.to_datetime(dfe['exp_date']) - pd.Timestamp(today_d)).dt.days
+            ed_near = dfe.iloc[(dfe['dte'] - 14).abs().to_numpy().argmin()]['exp_date']
             exp_df = dfe[dfe['exp_date'] == ed_near]
             if not exp_df.empty:
                 # find nearest deltas
