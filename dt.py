@@ -1166,9 +1166,6 @@ def compute_expiry_strip(df_all: pd.DataFrame, spot: float, weighting: Weighting
     return agg
 
 
-# SPX Zero-Gamma logic removed per request.
-
-
 def pick_expiration_filter(df: pd.DataFrame, mode: str, next_n_days: int) -> pd.DataFrame:
     if df.empty:
         return df

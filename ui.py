@@ -33,11 +33,6 @@ from dash import callback_context, no_update
 import plotly.graph_objs as go
 
 # Ensure repo root is on sys.path so both package and local runs work
-try:
-    # Running from repo root: already OK
-    pass
-except Exception:
-    pass
 repo_root = pathlib.Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
