@@ -1,3 +1,4 @@
+# Experimental. Not used in the paper or any reported result.
 """Minimal Tradier REST client for equity orders."""
 from __future__ import annotations
 

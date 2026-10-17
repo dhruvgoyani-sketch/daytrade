@@ -139,8 +139,8 @@ daytrade/
 ├── thresholds.json     # Per-ticker bias/volume/persistence parameters
 ├── fetch_tas.py        # Convex time-and-sales fetch example
 ├── und_probe.py        # Convex underlying (get_und) probe utility
-├── brokers/
-│   └── tradier.py           # Minimal Tradier REST client (equity orders)
+├── experimental/
+│   └── brokers/tradier.py  # Experimental Tradier client, not used in the paper
 ├── walls/
 │   ├── detector.py     # Rolling per-strike wall detection (support/resistance)
 │   └── guard.py        # Signal veto when pointing into a wall
