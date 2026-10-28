@@ -5,6 +5,8 @@
 Code and results for the paper **"Overlapping-Observation t-Inflation in Evaluating Algorithmic Intraday Trading Signals: A Reproducible Null on S&P 500 Option Flow"**
 Dhruv Goyani. Presented at the 2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT), October 2026.
 
+**Interactive explainer:** [dhruvgoyani-sketch.github.io/daytrade](https://dhruvgoyani-sketch.github.io/daytrade/)
+
 ## The finding
 
 I built an engine that reads net aggressor option flow on the S&P 500 and emits
@@ -31,6 +33,37 @@ time and the day-clustered test 5% of the time, which is what a valid test shoul
 The result is a null: no detectable predictability, from a design with 80% power
 to detect a mean signed return of 0.64 basis points.
 
+## How fast can you sample before the test lies?
+
+Post-acceptance extension, not in the paper. The same signal on the same 150 days,
+thinned from one poll every 15 seconds to one every 15 minutes:
+
+| Time between polls | Naive t | Day-clustered t | Random signals passing the naive test |
+|---|---|---|---|
+| 15 s (the engine) | 8.41 | 0.87 | 74% |
+| 1 min | 3.04 | 0.48 | 54% |
+| 5 min | 0.88 | 0.04 | 16% |
+| 15 min | 0.88 | 1.05 | 7% |
+
+![False-positive rate and t-statistics by sampling interval](extensions/fig_sampling_rate.png)
+
+Sampling faster made the naive test more confident and more wrong. The day-clustered
+test stays near 5% at every speed. A prediction from the committed autocorrelation
+alone tracks the measured rate. Method, full table and code: [`extensions/`](extensions/).
+
+## Related work
+
+The overlap problem is old. Hansen and Hodrick (1980) derived corrected standard
+errors for forecasts whose horizon is longer than the sampling interval. Newey and
+West (1987) gave the autocorrelation-consistent estimator used here, and Richardson
+and Smith (1991) studied tests of financial models with overlapping observations.
+This project applies those ideas to an intraday option-flow signal polled every
+15 seconds, and measures how the false-positive rate grows with sampling speed.
+
+- Hansen, L. P., and R. J. Hodrick (1980). Forward exchange rates as optimal predictors of future spot rates: An econometric analysis. *Journal of Political Economy* 88(5), 829-853.
+- Newey, W. K., and K. D. West (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix. *Econometrica* 55(3), 703-708.
+- Richardson, M., and T. Smith (1991). Tests of financial models in the presence of overlapping observations. *Review of Financial Studies* 4(2), 227-254.
+
 ## Verify it yourself (no data needed, under a minute)
 
 ```bash
@@ -54,7 +87,10 @@ python analysis/revision_stats.py
 python analysis/make_paper_figs.py
 ```
 
-Every number in the paper is written to `analysis/paper_stats/`.
+Every number in the paper is written to `analysis/paper_stats/`. On October 27, 2026
+I rebuilt everything from the 152 raw session logs. Every statistic matched the
+committed outputs; the largest relative difference was 4e-12, from newer numpy and
+scipy versions.
 
 ## Data availability
 
