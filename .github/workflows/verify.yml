@@ -11,3 +11,4 @@ jobs:
       - run: pip install numpy pandas scipy
       - run: python analysis/verify_from_daily.py
       - run: python analysis/simulate_overlap.py
+      - run: python extensions/sampling_rate_law.py --predict
