@@ -4,132 +4,373 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The 8.41 That Wasn't</title>
-<meta name="description" content="Dhruv Goyani. How sampling a trading signal every 15 seconds made a null result look highly significant, and how fast you can sample before the standard t-test lies.">
+<meta name="description" content="Dhruv Goyani. My trading signal's standard test said 8.41. The truth was 0.87. How checking every 15 seconds manufactured confidence, and how fast you can sample before the test lies.">
+<meta property="og:title" content="The 8.41 that wasn't">
+<meta property="og:description" content="How checking a trading signal every 15 seconds made noise look certain.">
+<meta property="og:image" content="https://dhruvgoyani-sketch.github.io/daytrade/figures/fig_inference.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #ffffff; --text: #111111; --muted: #555555; --line: #dddddd;
-    --dot: #d6d6d6; --hit: #b2182b; --panel: #f6f6f6;
+:root {
+  --paper: #f3efe6; --paper-2: #ebe5d8; --ink: #151412; --ink-2: #5f5a50; --rule: #d6cebd;
+  --accent: #cf3f24; --accent-soft: rgba(207,63,36,.12); --ring: #a49d8e; --grid: rgba(60,50,30,.06);
+  --ease-out: cubic-bezier(.23,1,.32,1); --ease-io: cubic-bezier(.77,0,.175,1);
+  --serif: "Newsreader", Georgia, serif; --display: "Instrument Serif", "Newsreader", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12110f; --paper-2: #1b1a17; --ink: #ece6d9; --ink-2: #a39d90; --rule: #34312b;
+    --accent: #ff6b4f; --accent-soft: rgba(255,107,79,.14); --ring: #6b665c; --grid: rgba(255,245,225,.045);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #121212; --text: #eeeeee; --muted: #aaaaaa; --line: #333333;
-      --dot: #3a3a3a; --hit: #ef6f6c; --panel: #1c1c1c;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #121212; --text: #eeeeee; --muted: #aaaaaa; --line: #333333;
-    --dot: #3a3a3a; --hit: #ef6f6c; --panel: #1c1c1c;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 17px/1.55 Georgia, "Times New Roman", serif;
-  }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 6px; }
-  h2 { font-size: 1.2rem; margin: 40px 0 8px; }
-  .by { color: var(--muted); margin: 0 0 28px; font-size: 0.95rem; }
-  p { margin: 0 0 14px; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px; margin: 18px 0; }
-  label { display: block; font-weight: bold; margin-bottom: 6px; }
-  input[type=range] { width: 100%; accent-color: var(--hit); }
-  .ticks { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-  .grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; margin: 18px 0 10px; }
-  .grid span { aspect-ratio: 1; border-radius: 50%; background: var(--dot); transition: background 0.25s; }
-  .grid span.hit { background: var(--hit); }
-  .big { font-size: 1.15rem; margin: 4px 0; }
-  .big b { color: var(--hit); }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-  .stat { border-top: 1px solid var(--line); padding-top: 8px; }
-  .stat .n { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
-  .stat .l { font-size: 0.85rem; color: var(--muted); }
-  .pass { color: var(--hit); }
-  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 0.95rem; }
-  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  a { color: inherit; }
-  .small { font-size: 0.85rem; color: var(--muted); }
-  ul { padding-left: 20px; }
+}
+:root[data-theme="dark"] {
+  --paper: #12110f; --paper-2: #1b1a17; --ink: #ece6d9; --ink-2: #a39d90; --rule: #34312b;
+  --accent: #ff6b4f; --accent-soft: rgba(255,107,79,.14); --ring: #6b665c; --grid: rgba(255,245,225,.045);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; color: var(--ink); background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px; background-position: -1px -1px;
+  font: 400 18px/1.6 var(--serif); font-optical-sizing: auto;
+}
+main { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 40px 20px 96px; }
+.kicker { font: 500 12px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 28px; }
+.kicker b { color: var(--ink); font-weight: 500; }
+h1 { font: 400 clamp(44px, 9vw, 76px)/1.02 var(--display); letter-spacing: -.01em; margin: 0 0 24px; }
+h1 em { font-style: italic; color: var(--accent); }
+h2 { font: 400 clamp(30px, 5.4vw, 40px)/1.1 var(--display); margin: 0 0 14px; }
+p { margin: 0 0 16px; }
+.lede { font-size: 21px; line-height: 1.5; }
+.muted { color: var(--ink-2); }
+section { margin-top: 88px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+
+/* hero numbers */
+.verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 8px 0 28px; }
+.verdict > div { padding: 18px 0 16px; }
+.verdict > div + div { border-left: 1px solid var(--rule); padding-left: 20px; }
+.big { font: 400 clamp(64px, 15vw, 112px)/1 var(--display); font-variant-numeric: tabular-nums; position: relative; display: inline-block; }
+.strike::after { content: ""; position: absolute; left: -4%; right: -4%; top: 52%; height: 5px; background: var(--accent); transform: scaleX(0); transform-origin: left; border-radius: 3px; }
+.ready .strike::after { transform: scaleX(1); transition: transform 600ms var(--ease-io) 700ms; }
+.truth { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+.ready .truth { opacity: 1; transform: none; filter: none; transition: opacity 500ms var(--ease-out) 1250ms, transform 600ms var(--ease-out) 1250ms, filter 500ms ease 1250ms; }
+.lbl { font: 500 12px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); margin-top: 8px; }
+
+/* load reveal */
+.rise { opacity: 0; transform: translateY(14px); }
+.ready .rise { opacity: 1; transform: none; transition: opacity 600ms var(--ease-out), transform 700ms var(--ease-out); }
+.ready .rise.d1 { transition-delay: 80ms; } .ready .rise.d2 { transition-delay: 160ms; } .ready .rise.d3 { transition-delay: 1500ms; }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms var(--ease-out), transform 800ms var(--ease-out); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* card */
+.card { background: var(--paper-2); border: 1px solid var(--rule); border-radius: 14px; padding: 22px 20px; margin: 22px 0; box-shadow: 0 1px 0 var(--rule), 0 18px 40px -28px rgba(0,0,0,.35); }
+
+/* overlap timeline */
+.timeline svg { width: 100%; height: auto; display: block; overflow: visible; }
+.timeline .bar { transform-box: fill-box; transform-origin: left center; transform: scaleX(0); }
+.timeline.in .bar { transform: scaleX(1); transition: transform 900ms var(--ease-out); }
+.timeline text { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); }
+.timeline { padding: 20px; }
+.timeline .shared { opacity: 0; }
+.timeline.in .shared { opacity: 1; transition: opacity 600ms ease 1100ms; }
+.quote { font: italic 400 22px/1.45 var(--serif); border-left: 3px solid var(--accent); padding: 2px 0 2px 16px; margin: 20px 0 0; }
+
+/* explorer */
+.seg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 4px; margin: 6px 0 4px; }
+.seg button { appearance: none; border: 0; background: transparent; color: var(--ink-2); font: 500 12px/1 var(--mono); padding: 11px 0; border-radius: 7px; cursor: pointer; transition: background-color 180ms ease, color 180ms ease, transform 140ms var(--ease-out); touch-action: manipulation; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg button:active { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) { .seg button:not([aria-pressed="true"]):hover { background: var(--accent-soft); color: var(--ink); } }
+.seg-cap { display: flex; justify-content: space-between; font: 12px/1.4 var(--mono); color: var(--ink-2); }
+.explorer { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 18px; }
+@media (min-width: 640px) { .explorer { grid-template-columns: 1.05fr 1fr; align-items: start; } }
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; border: 1.5px solid var(--ring); background: transparent; transform: scale(.82); transition: background-color 260ms ease, border-color 260ms ease, transform 320ms var(--ease-out); }
+.dots i.hit { background: var(--accent); border-color: var(--accent); transform: scale(1); }
+.count { font: 400 64px/1 var(--display); font-variant-numeric: tabular-nums; }
+.count-l { font: 500 13px/1.45 var(--mono); color: var(--ink-2); letter-spacing: .02em; margin-top: 6px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font: 12px/1.4 var(--mono); color: var(--ink-2); margin-top: 10px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.legend .l-hit::before { background: var(--accent); }
+.legend .l-miss::before { border: 1.5px solid var(--ring); }
+.readouts { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule); margin-top: 18px; }
+.readouts > div { padding-top: 12px; }
+.readouts .n { font: 500 30px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.readouts .n.over { color: var(--accent); }
+.readouts .l { font-size: 14px; color: var(--ink-2); line-height: 1.35; margin-top: 4px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 10.5px; fill: var(--ink-2); }
+.chart .naive { fill: none; stroke: var(--ink); stroke-width: 2; }
+.chart .clus { fill: none; stroke: var(--ring); stroke-width: 2; stroke-dasharray: 4 4; }
+.chart .pt { transition: transform 420ms var(--ease-out); }
+.tag { display: inline-block; font: 500 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--rule); border-radius: 99px; padding: 6px 9px; color: var(--ink-2); }
+
+/* clue bars */
+.clue { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: end; height: 190px; margin: 18px 0 8px; border-bottom: 1px solid var(--ink); }
+.clue .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.clue .b { width: 54%; background: var(--ink); border-radius: 4px 4px 0 0; transform-origin: bottom; transform: scaleY(0); }
+.clue.in .b { transform: scaleY(1); transition: transform 900ms var(--ease-out); }
+.clue.in .col:nth-child(2) .b { transition-delay: 90ms; } .clue.in .col:nth-child(3) .b { transition-delay: 180ms; }
+.clue .v { font: 500 15px/1 var(--mono); margin-bottom: 6px; }
+.clue-x { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; text-align: center; font: 12px/1.45 var(--mono); color: var(--ink-2); }
+.story p { font-size: 18.5px; }
+
+details { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); padding: 4px 0; margin-top: 28px; }
+summary { cursor: pointer; list-style: none; font: 500 13px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 16px 0; display: flex; justify-content: space-between; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-size: 18px; transition: transform 200ms var(--ease-out); }
+details[open] summary::after { transform: rotate(45deg); }
+table { width: 100%; border-collapse: collapse; font-size: 16px; margin: 4px 0 18px; }
+th, td { text-align: left; padding: 9px 4px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.notes p { font-size: 16px; }
+.notes b { font-weight: 500; }
+
+ol.q { padding-left: 0; list-style: none; counter-reset: q; margin: 0; }
+ol.q li { counter-increment: q; position: relative; padding: 14px 0 14px 46px; border-top: 1px solid var(--rule); }
+ol.q li::before { content: counter(q, decimal-leading-zero); position: absolute; left: 0; top: 16px; font: 500 13px/1 var(--mono); color: var(--accent); }
+.links { list-style: none; padding: 0; margin: 0; }
+.links li { border-top: 1px solid var(--rule); }
+.links a { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; text-decoration: none; }
+.links a span:last-child { font-family: var(--mono); color: var(--accent); transition: transform 200ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .links a:hover span:last-child { transform: translateX(4px); } }
+footer { margin-top: 64px; font: 12.5px/1.6 var(--mono); color: var(--ink-2); }
+noscript img { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .reveal, .truth, .timeline .bar, .clue .b, .timeline .shared { opacity: 1 !important; transform: none !important; filter: none !important; transition: opacity 200ms ease !important; }
+  .strike::after { transform: scaleX(1) !important; transition: none !important; }
+  .dots i, .chart .pt { transition: background-color 150ms ease, border-color 150ms ease !important; }
+}
+@media (max-width: 420px) { body { font-size: 17px; } .lede { font-size: 19px; } .seg button { font-size: 10.5px; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>The 8.41 that wasn't</h1>
-  <p class="by">Dhruv Goyani · American Heritage School, Class of 2027 · Presented at the 2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT), October 2026</p>
+  <p class="kicker rise">Dhruv Goyani · <b>American Heritage School, Class of 2027</b></p>
 
-  <p>I built a program that reads S&amp;P 500 option orders and says long, short, or flat. Over 150 trading days it looked like it could predict the next 15 minutes. The standard test gave t = 8.41. Anything above 1.96 usually counts as significant.</p>
-  <p>It was not real. My program checked the market every 15 seconds, so each 15-minute window overlapped about 67 others. The test counted the same price move dozens of times and thought it had far more evidence than it did.</p>
+  <h1 class="rise d1">The <em>8.41</em> that wasn't.</h1>
 
-  <h2>Try it</h2>
-  <p>Each dot below is a fake signal that cannot predict anything. It flips between long and short at random, the way my real signal does. Red dots are the ones the standard test calls "significant." Slide to change how often the market is checked.</p>
-
-  <div class="panel">
-    <label for="speed">Time between checks: <span id="speedLabel"></span></label>
-    <input id="speed" type="range" min="0" max="6" step="1" value="0" aria-describedby="speedLabel">
-    <div class="ticks"><span>15 s</span><span>30 s</span><span>1 m</span><span>2 m</span><span>5 m</span><span>10 m</span><span>15 m</span></div>
-    <div class="grid" id="grid" aria-hidden="true"></div>
-    <p class="big"><b id="hits"></b> of 100 random signals look significant to the standard test.</p>
-    <p class="small">A test that works should fool you about 5 times in 100. The fair test, which treats each trading day as one piece of evidence, stays near <span id="fair"></span> in 100 at every speed.</p>
-    <div class="stats">
-      <div class="stat"><div class="n" id="tn"></div><div class="l">standard t for my real signal</div></div>
-      <div class="stat"><div class="n" id="tc"></div><div class="l">fair (day-clustered) t for my real signal</div></div>
-    </div>
+  <div class="verdict rise d2" aria-label="The first test gave 8.41. The corrected test gave 0.87.">
+    <div><span class="big strike">8.41</span><div class="lbl">The test I first ran</div></div>
+    <div><span class="big truth">0.87</span><div class="lbl">The corrected test</div></div>
   </div>
 
-  <p>Same signal, same days. The only thing that changes is how often I look. Checking faster made the standard test more confident and more wrong. The fair test never comes close to 1.96.</p>
+  <p class="lede rise d3">I built a program that watches trading in S&amp;P 500 options and guesses whether the market will rise or fall over the next 15 minutes. Statisticians usually treat a score above 2 as a sign that an effect is real. My program scored 8.41. Once I stopped counting the same price moves over and over, it scored 0.87. That is noise.</p>
 
-  <h2>The paper's result</h2>
-  <table>
-    <tr><th>Test at the 15-minute horizon</th><th class="num">t</th></tr>
-    <tr><td>Standard, every check treated as independent</td><td class="num">8.41</td></tr>
-    <tr><td>Newey-West (corrects for overlap)</td><td class="num">1.79</td></tr>
-    <tr><td>Day-clustered (150 trading days)</td><td class="num">0.87</td></tr>
-    <tr><td>Only returns that share no window (2,487)</td><td class="num">0.34</td></tr>
-  </table>
-  <p>The answer is a null. The signal shows no detectable predictive power, and the study had 80% power to detect a mean signed return of 0.64 basis points.</p>
-  <p>This is an old problem. Lars Peter Hansen and Robert Hodrick worked out how to correct for overlapping forecast windows in 1980. I ran into it on my own data, then measured how fast you can sample before the standard test breaks.</p>
+  <section class="reveal">
+    <h2>The mistake</h2>
+    <p>My program checked the market every 15 seconds, and I graded each check on the next 15 minutes of price. Checks 15 seconds apart are graded on almost the same 15 minutes.</p>
+    <div class="card timeline" id="timeline">
+      <svg id="tl" role="img" aria-label="Five checks, 15 seconds apart. Each is graded on the next 15 minutes, so their windows almost completely overlap."></svg>
+    </div>
+    <p>So the test thought it had far more evidence than it did. My 82,183 graded checks carried about as much information as 2,986 independent ones.</p>
+    <p class="quote">It is like asking one friend the same question over and over and calling it a survey.</p>
+  </section>
 
-  <h2>Check it yourself</h2>
-  <ul>
-    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade">Code and results on GitHub</a>. Two scripts recompute the main results without any market data, and they run automatically on every change.</li>
-    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/tree/main/extensions">How fast can you sample?</a> The method and full table behind the slider.</li>
-    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/releases/tag/v1.0-csit2026">Version of the code as presented at CSIT 2026</a>.</li>
-  </ul>
-  <p class="small">The slider shows measured results: 1,000 random placebo signals at each speed, built by shifting my real signal in time within each day. Raw market data comes from a licensed Convex Value subscription and cannot be shared. The repository includes the full code and every derived statistic.</p>
+  <section class="reveal">
+    <h2>Try it</h2>
+    <p>Each dot below is a fake strategy built from my real signal, shuffled in time so it cannot predict anything. A filled dot means the standard test calls it a success. Pick how often the market gets checked.</p>
+    <div class="card">
+      <div class="seg" role="group" aria-label="Time between checks" id="seg"></div>
+      <div class="seg-cap"><span>checked faster</span><span>checked slower</span></div>
+      <div class="explorer">
+        <div>
+          <div class="dots" id="dots" aria-hidden="true"></div>
+          <div class="legend"><span class="l-hit">test says "it works"</span><span class="l-miss">test says "nothing here"</span></div>
+        </div>
+        <div>
+          <div aria-live="polite"><div class="count"><span id="hits">74</span><span style="font-size:.45em;color:var(--ink-2)"> / 100</span></div><div class="count-l">fake strategies look like they work</div></div>
+          <p class="muted" style="font-size:15px;margin:10px 0 0">A test that works should be fooled about 5 times in 100. At this speed the corrected test is fooled <span class="mono" id="fair">4</span> times.</p>
+          <div class="readouts">
+            <div class="l" style="grid-column:1/-1;margin:0 0 2px">My real signal at this speed</div>
+            <div><div class="n over" id="tn">8.41</div><div class="l">first test</div></div>
+            <div><div class="n" id="tc">0.87</div><div class="l">corrected test</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart" style="margin-top:22px">
+        <svg role="img" aria-label="Line chart. The first test's score falls from 8.41 at 15-second checks to 0.88 at 15-minute checks. The corrected score stays below 2 throughout." id="chart"></svg>
+      </div>
+      <p style="margin:14px 0 0"><span class="tag">Analysis added after the paper was accepted</span></p>
+    </div>
+    <noscript><img src="figures/fig_sampling_rate.png" alt="How often a random signal looks significant, and the real signal's t-statistic, at each polling speed."></noscript>
+    <p>Same signal. Same 150 trading days. The only thing that changes is how often I look. Checking faster made the standard test more confident and more wrong.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>How I caught it</h2>
+    <p>The clue was in the pattern. A real signal should not get more certain just because each check looks further ahead.</p>
+    <div class="clue" id="clue" aria-label="First-test scores: 4.29 at 5 minutes, 8.41 at 15 minutes, 8.61 at 30 minutes, with about the same number of checks each time.">
+      <div class="col"><span class="v">4.29</span><div class="b" style="height:44%"></div></div>
+      <div class="col"><span class="v">8.41</span><div class="b" style="height:86%"></div></div>
+      <div class="col"><span class="v">8.61</span><div class="b" style="height:88%"></div></div>
+    </div>
+    <div class="clue-x"><span>5-minute window<br>82,587 checks</span><span>15-minute window<br>82,183 checks</span><span>30-minute window<br>80,728 checks</span></div>
+    <div class="story" style="margin-top:28px">
+      <p>It was a Saturday, a few days after my first full backtest finished. The 15-minute horizon came back at t = 8.41. For about ten minutes I thought I had found something real. Then I looked at the size of the effect. It was 0.43 basis points, roughly one tick in S&amp;P futures. An effect that small should not come with that much certainty.</p>
+      <p>The second thing I noticed was the pattern across horizons. At 5 minutes the t-stat was 4.29. At 15 minutes it jumped to 8.41, and at 30 it hit 8.61. The sample size barely changed between them. The only thing that changed was how far forward each window reached. Longer windows were making the result look stronger, and that made no sense for a real signal.</p>
+      <p>That pointed me at the windows themselves. I had about 550 polls a day, and each one was scored on the next 15 minutes of price. So every 15-minute move in the market was being counted around 20 times. My 82,183 observations were really the same few thousand moves, repeated.</p>
+      <p>The first thing I checked was the simplest fix I could think of. I averaged each day into a single number and reran the test on 150 days instead of 82,183 polls. The t-stat fell to 0.87. Only 53% of days were positive. What looked like a discovery was a coin flip I had counted twenty times.</p>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2>What it means</h2>
+    <p>The signal shows no detectable predictive power. The study had an 80% chance of detecting an average effect of 0.64 basis points, so a real effect smaller than that cannot be ruled out.</p>
+    <p>The trap is not about trading. Anything graded on overlapping windows can fool a standard test the same way, such as a 7-day average that gets recomputed every day. Economists worked out the correction for overlapping forecasts in 1980 (Hansen and Hodrick). I ran into the problem on my own data, then measured how fast you can sample before the standard test breaks.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>What I still want to know</h2>
+    <ol class="q">
+      <li>The amount of false confidence can be predicted from how correlated neighbouring checks are. That prediction tracks the measured rate but runs a few points low. Why?</li>
+      <li>Is there a real effect smaller than 0.64 basis points that a longer sample could find?</li>
+    </ol>
+
+    <details>
+      <summary>For statisticians</summary>
+      <table>
+        <tr><th>Inference at the 15-minute horizon</th><th class="num">t</th></tr>
+        <tr><td>Naive, every poll independent</td><td class="num">8.41</td></tr>
+        <tr><td>Newey-West HAC</td><td class="num">1.79</td></tr>
+        <tr><td>Day-clustered (150 trading days)</td><td class="num">0.87</td></tr>
+        <tr><td>Non-overlapping subsample (2,487 returns)</td><td class="num">0.34</td></tr>
+      </table>
+      <div class="notes">
+        <p><b>Counts.</b> 211,739 polls in 152 logged sessions. Most polls were flat; the test uses the 82,183 long or short polls with a valid 15-minute return, over 150 trading days. Their autocorrelation implies about 2,986 independent observations.</p>
+        <p><b>Why day clustering.</b> The signal tends to stay long or short for long stretches within a day, longer than the 15-minute lag window Newey-West uses here. Treating each day as one observation allows any dependence within a day and none across days. A day bootstrap gives a 95% interval of −0.24 to +0.64 basis points.</p>
+        <p><b>Two placebo figures.</b> The paper reports 77.5% of placebo signals passing the naive test, from 200 draws. The slider uses 1,000 draws with a different seed and gets 74.3%. Both use the same within-day circular shift of the real signal.</p>
+        <p><b>Two no-overlap figures.</b> The paper's 0.34 keeps a poll only if it is at least 15 minutes after the last kept poll. The slider's 15-minute point keeps the first poll in each 15-minute clock interval, which gives a different subsample (t = 0.88). Both are far below 1.96.</p>
+        <p><b>Reproducibility.</b> One script recomputes the day-level results from committed data on every change. A full rebuild from the 152 raw session logs reproduced every statistic in the paper.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="reveal">
+    <h2>Check it yourself</h2>
+    <ul class="links">
+      <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/tree/v1.0-csit2026"><span>Code and results, as presented at CSIT 2026</span><span>v1.0 →</span></a></li>
+      <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/tree/v1.1/extensions"><span>The sampling-speed analysis behind the slider</span><span>v1.1 →</span></a></li>
+      <li><a href="https://github.com/dhruvgoyani-sketch/daytrade"><span>The full repository</span><span>GitHub →</span></a></li>
+    </ul>
+  </section>
+
+  <footer>
+    Presented at the 2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT), October 2026.<br>
+    Raw market data comes from a licensed Convex Value subscription and cannot be shared. The repository includes the code and every derived statistic.<br>
+    Page as of October 2026.
+  </footer>
 </main>
+
 <script>
-  // From extensions/results/sampling_rate_law.csv
-  const DATA = [
-    { s: "15 seconds (my program)", naive: 0.743, fair: 0.044, tn: 8.41, tc: 0.87 },
-    { s: "30 seconds", naive: 0.655, fair: 0.042, tn: 5.02, tc: 0.63 },
-    { s: "1 minute",   naive: 0.539, fair: 0.045, tn: 3.04, tc: 0.48 },
-    { s: "2 minutes",  naive: 0.360, fair: 0.057, tn: 1.86, tc: 0.35 },
-    { s: "5 minutes",  naive: 0.157, fair: 0.046, tn: 0.88, tc: 0.04 },
-    { s: "10 minutes", naive: 0.120, fair: 0.061, tn: 0.73, tc: 0.46 },
-    { s: "15 minutes", naive: 0.066, fair: 0.041, tn: 0.88, tc: 1.05 }
+(() => {
+  // extensions/results/sampling_rate_law.csv
+  const D = [
+    { k: "15s", s: 15,  naive: .743, fair: .044, tn: 8.41, tc: 0.87 },
+    { k: "30s", s: 30,  naive: .655, fair: .042, tn: 5.02, tc: 0.63 },
+    { k: "1m",  s: 60,  naive: .539, fair: .045, tn: 3.04, tc: 0.48 },
+    { k: "2m",  s: 120, naive: .360, fair: .057, tn: 1.86, tc: 0.35 },
+    { k: "5m",  s: 300, naive: .157, fair: .046, tn: 0.88, tc: 0.04 },
+    { k: "10m", s: 600, naive: .120, fair: .061, tn: 0.73, tc: 0.46 },
+    { k: "15m", s: 900, naive: .066, fair: .041, tn: 0.88, tc: 1.05 }
   ];
-  const grid = document.getElementById("grid");
-  // fixed shuffled order so dots switch on and off consistently
-  const order = Array.from({ length: 100 }, (_, i) => i);
-  let seed = 20261027;
-  const rand = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
-  for (let i = 99; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  const dots = order.map(() => grid.appendChild(document.createElement("span")));
-  const el = id => document.getElementById(id);
-  function render(k) {
-    const d = DATA[k];
-    const n = Math.round(d.naive * 100);
-    order.forEach((pos, rank) => dots[pos].classList.toggle("hit", rank < n));
-    el("speedLabel").textContent = d.s;
-    el("hits").textContent = n;
-    el("fair").textContent = Math.round(d.fair * 100);
-    el("tn").textContent = d.tn.toFixed(2);
-    el("tn").classList.toggle("pass", Math.abs(d.tn) > 1.96);
-    el("tc").textContent = d.tc.toFixed(2);
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const a in attrs) e.setAttribute(a, attrs[a]); parent && parent.appendChild(e); return e; };
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  // page load
+  requestAnimationFrame(() => document.body.classList.add("ready"));
+
+  // scroll reveals
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -12% 0px" });
+  document.querySelectorAll(".reveal, #timeline, #clue").forEach(el => io.observe(el));
+
+  // overlap timeline: five checks 15 s apart, each graded on the next 15 minutes
+  const TL = $("tl");
+  function drawTimeline() {
+    TL.innerHTML = "";
+    const Wt = TL.parentNode.clientWidth - 40, narrow = Wt < 460, H = 178;
+    TL.setAttribute("viewBox", `0 0 ${Wt} ${H}`);
+    const x0 = narrow ? 62 : 74, W = Wt - x0 - 6, span = 16.2 * 60, px = s => x0 + (s / span) * W;
+    const g = TL;
+    mk("line", { x1: x0, x2: x0 + W, y1: 150, y2: 150, stroke: "var(--ink)" }, g);
+    [0, 5, 10, 15].forEach(m => { mk("line", { x1: px(m*60), x2: px(m*60), y1: 150, y2: 155, stroke: "var(--ink-2)" }, g); const t = mk("text", { x: px(m*60), y: 170, "text-anchor": "middle" }, g); t.textContent = `10:${String(m).padStart(2,"0")}`; });
+    mk("rect", { x: px(60), y: 8, width: px(900) - px(60), height: 132, fill: "var(--accent-soft)", class: "shared", rx: 4 }, g);
+    const st = mk("text", { x: (px(60) + px(900)) / 2, y: 24, "text-anchor": "middle", class: "shared", style: "fill:var(--accent)" }, g); st.textContent = narrow ? "shared by all five" : "shared by all five windows";
+    for (let i = 0; i < 5; i++) {
+      const y = 36 + i * 22, s = i * 15, sec = s % 60, min = Math.floor(s / 60);
+      const lab = mk("text", { x: x0 - 8, y: y + 9, "text-anchor": "end" }, g); lab.textContent = `10:0${min}:${String(sec).padStart(2,"0")}`;
+      const r = mk("rect", { x: px(s), y, width: px(s + 900) - px(s), height: 12, rx: 3, fill: i === 0 ? "var(--ink)" : "var(--ring)", class: "bar" }, g);
+      r.style.transitionDelay = `${i * 90}ms`;
+      mk("circle", { cx: px(s), cy: y + 6, r: 3.5, fill: "var(--accent)" }, g);
+    }
   }
-  const slider = el("speed");
-  slider.addEventListener("input", e => render(+e.target.value));
+  drawTimeline();
+
+  // dots
+  const dots = $("dots"), order = Array.from({ length: 100 }, (_, i) => i);
+  let seed = 20261027; const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  for (let i = 99; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const cells = order.map(() => dots.appendChild(document.createElement("i")));
+
+  // chart: real signal t vs time between checks (log x)
+  const C = $("chart");
+  let lx, ly, pt, pt2;
+  function drawChart() {
+    C.innerHTML = "";
+    const Wc = C.parentNode.clientWidth, narrow = Wc < 460, Hc = narrow ? 200 : 214;
+    C.setAttribute("viewBox", `0 0 ${Wc} ${Hc}`);
+    const cx0 = 26, cw = Wc - cx0 - 10, cy0 = Hc - 30, ch = cy0 - 14, ymax = 9;
+    lx = s => cx0 + (Math.log(s) - Math.log(15)) / (Math.log(900) - Math.log(15)) * cw;
+    ly = t => cy0 - (t / ymax) * ch;
+    [0, 2, 4, 6, 8].forEach(t => { mk("line", { x1: cx0, x2: cx0 + cw, y1: ly(t), y2: ly(t), stroke: "var(--rule)" }, C); const tx = mk("text", { x: cx0 - 8, y: ly(t) + 3.5, "text-anchor": "end" }, C); tx.textContent = t; });
+    mk("line", { x1: cx0, x2: cx0 + cw, y1: ly(1.96), y2: ly(1.96), stroke: "var(--accent)", "stroke-dasharray": "2 4", "stroke-width": 1.2 }, C);
+    const thr = mk("text", { x: cx0 + cw, y: ly(1.96) - 6, "text-anchor": "end", style: "fill:var(--accent)" }, C); thr.textContent = narrow ? "about 2: counts as real" : "about 2: usually counts as real";
+    mk("polyline", { class: "naive", points: D.map(d => `${lx(d.s)},${ly(d.tn)}`).join(" ") }, C);
+    mk("polyline", { class: "clus", points: D.map(d => `${lx(d.s)},${ly(d.tc)}`).join(" ") }, C);
+    D.forEach((d, i) => { if (narrow && i === 5) return; const t = mk("text", { x: lx(d.s), y: cy0 + 18, "text-anchor": i === 6 ? "end" : i === 0 ? "start" : "middle" }, C); t.textContent = d.k; });
+    const l1 = mk("text", { x: lx(15) + 12, y: ly(8.41) + 4 }, C); l1.textContent = "first test";
+    const l2 = mk("text", { x: lx(15) + 12, y: ly(0.87) - 9 }, C); l2.textContent = "corrected test";
+    pt = mk("g", { class: "pt" }, C);
+    mk("circle", { r: 9, fill: "var(--accent-soft)" }, pt); mk("circle", { r: 4.5, fill: "var(--accent)" }, pt);
+    pt2 = mk("g", { class: "pt" }, C); mk("circle", { r: 4, fill: "var(--paper-2)", stroke: "var(--ink-2)", "stroke-width": 1.5 }, pt2);
+  }
+  drawChart();
+
+  // segmented control
+  const seg = $("seg");
+  const labels = ["15 s", "30 s", "1 m", "2 m", "5 m", "10 m", "15 m"];
+  const btns = labels.map((t, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.setAttribute("aria-pressed", i === 0); b.addEventListener("click", () => render(i)); seg.appendChild(b); return b; });
+  seg.addEventListener("keydown", e => { const i = btns.indexOf(document.activeElement); if (i < 0) return; const n = e.key === "ArrowRight" ? Math.min(6, i + 1) : e.key === "ArrowLeft" ? Math.max(0, i - 1) : -1; if (n >= 0) { e.preventDefault(); btns[n].focus(); render(n); } });
+
+  let render = function (k) {
+    const d = D[k], n = Math.round(d.naive * 100);
+    btns.forEach((b, i) => b.setAttribute("aria-pressed", i === k));
+    order.forEach((pos, rank) => cells[pos].classList.toggle("hit", rank < n));
+    $("hits").textContent = n;
+    $("fair").textContent = Math.round(d.fair * 100);
+    $("tn").textContent = d.tn.toFixed(2); $("tn").classList.toggle("over", d.tn > 1.96);
+    $("tc").textContent = d.tc.toFixed(2);
+    pt.style.transform = `translate(${lx(d.s)}px, ${ly(d.tn)}px)`;
+    pt2.style.transform = `translate(${lx(d.s)}px, ${ly(d.tc)}px)`;
+  };
+  let cur = 0;
+  const _render = render;
+  render = k => { cur = k; _render(k); };
   render(0);
+  let rt; const ro = new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => { drawChart(); drawTimeline(); if (document.getElementById("timeline").classList.contains("in")) {} _render(cur); }, 120); });
+  ro.observe(document.querySelector("main"));
+})();
 </script>
 </body>
 </html>
