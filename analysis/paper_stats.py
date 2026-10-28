@@ -53,6 +53,12 @@ N_PLACEBO = 200
 # ----------------------------------------------------------------------
 # 1. load
 # ----------------------------------------------------------------------
+def epoch_seconds(ts: pd.Series) -> np.ndarray:
+    """Seconds since the epoch. Casting to nanoseconds first keeps the result
+    identical under pandas 2 (ns timestamps) and pandas 3 (us timestamps)."""
+    return ts.astype("datetime64[ns, UTC]").astype("int64").to_numpy() / 1e9
+
+
 def load_spx() -> pd.DataFrame:
     cache = os.path.join(OUT, "polls.parquet")
     if os.path.exists(cache) and "--fresh" not in sys.argv:
@@ -133,7 +139,7 @@ def add_forward(df: pd.DataFrame, lag_polls: int = 0) -> pd.DataFrame:
         df[f"r{h}"] = np.nan
     for _, gd in df.groupby("day"):
         idx = gd.index.to_numpy()
-        t = gd["ts"].astype("int64").to_numpy() / 1e9
+        t = epoch_seconds(gd["ts"])
         s = gd["spot"].to_numpy()
         n = len(t)
         ent = np.arange(n) + lag_polls
@@ -226,7 +232,7 @@ def acf_by_minutes(df: pd.DataFrame, h: int, max_lag_polls: int = 240) -> pd.Dat
         e = signed(gd, h)
         mask = ~np.isnan(e)
         e_all.append(e[mask])
-        t_all.append((gd["ts"].astype("int64").to_numpy() / 1e9)[mask])
+        t_all.append(epoch_seconds(gd["ts"])[mask])
     m = np.concatenate([x for x in e_all]).mean()
     g0 = np.concatenate([(x - m) ** 2 for x in e_all]).sum()
     for l in range(1, max_lag_polls + 1):
@@ -248,7 +254,7 @@ def overlap_share(df: pd.DataFrame, h: int) -> float:
     tot, cnt = 0, 0
     for _, gd in df.groupby("day"):
         e = signed(gd, h)
-        t = (gd["ts"].astype("int64").to_numpy() / 1e9)[~np.isnan(e)]
+        t = epoch_seconds(gd["ts"])[~np.isnan(e)]
         if len(t) < 2:
             continue
         for i in range(len(t)):
@@ -265,7 +271,7 @@ def non_overlapping(df: pd.DataFrame, h: int) -> pd.DataFrame:
     keep_idx = []
     for _, gd in df.groupby("day"):
         e = signed(gd, h)
-        t = gd["ts"].astype("int64").to_numpy() / 1e9
+        t = epoch_seconds(gd["ts"])
         last = -np.inf
         for i, (ee, tt) in enumerate(zip(e, t)):
             if np.isnan(ee):
@@ -316,7 +322,7 @@ def main() -> None:
     # cadence
     dt_all = []
     for _, gd in df.groupby("day"):
-        t = gd["ts"].astype("int64").to_numpy() / 1e9
+        t = epoch_seconds(gd["ts"])
         dt_all.append(np.diff(t))
     dt_all = np.concatenate(dt_all)
     stats["cadence_med_s"] = float(np.median(dt_all))

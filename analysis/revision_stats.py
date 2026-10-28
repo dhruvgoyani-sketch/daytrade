@@ -31,7 +31,7 @@ res["polls_on_excluded_days"] = {d: int((df.day == d).sum()) for d in res["days_
 def all_poll_neighbors(h):
     tot = cnt = 0
     for _, gd in df.groupby("day"):
-        t = gd["ts"].astype("int64").to_numpy() / 1e9
+        t = ps.epoch_seconds(gd["ts"])
         lo = np.searchsorted(t, t - h * 60, side="left")
         hi = np.searchsorted(t, t + h * 60, side="right")
         tot += (hi - lo - 1).sum(); cnt += len(t)
@@ -41,7 +41,7 @@ def dir_neighbors(h):
     tot = cnt = 0
     for _, gd in df.groupby("day"):
         e = ps.signed(gd, h)
-        t = (gd["ts"].astype("int64").to_numpy() / 1e9)[~np.isnan(e)]
+        t = ps.epoch_seconds(gd["ts"])[~np.isnan(e)]
         if len(t) < 2: continue
         lo = np.searchsorted(t, t - h * 60, side="left")
         hi = np.searchsorted(t, t + h * 60, side="right")
