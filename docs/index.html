@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 8.41 That Wasn't</title>
+<meta name="description" content="Dhruv Goyani. How sampling a trading signal every 15 seconds made a null result look highly significant, and how fast you can sample before the standard t-test lies.">
+<style>
+  :root {
+    --bg: #ffffff; --text: #111111; --muted: #555555; --line: #dddddd;
+    --dot: #d6d6d6; --hit: #b2182b; --panel: #f6f6f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121212; --text: #eeeeee; --muted: #aaaaaa; --line: #333333;
+      --dot: #3a3a3a; --hit: #ef6f6c; --panel: #1c1c1c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121212; --text: #eeeeee; --muted: #aaaaaa; --line: #333333;
+    --dot: #3a3a3a; --hit: #ef6f6c; --panel: #1c1c1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.55 Georgia, "Times New Roman", serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 6px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 8px; }
+  .by { color: var(--muted); margin: 0 0 28px; font-size: 0.95rem; }
+  p { margin: 0 0 14px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px; margin: 18px 0; }
+  label { display: block; font-weight: bold; margin-bottom: 6px; }
+  input[type=range] { width: 100%; accent-color: var(--hit); }
+  .ticks { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; margin: 18px 0 10px; }
+  .grid span { aspect-ratio: 1; border-radius: 50%; background: var(--dot); transition: background 0.25s; }
+  .grid span.hit { background: var(--hit); }
+  .big { font-size: 1.15rem; margin: 4px 0; }
+  .big b { color: var(--hit); }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .stat { border-top: 1px solid var(--line); padding-top: 8px; }
+  .stat .n { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 0.85rem; color: var(--muted); }
+  .pass { color: var(--hit); }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  .small { font-size: 0.85rem; color: var(--muted); }
+  ul { padding-left: 20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The 8.41 that wasn't</h1>
+  <p class="by">Dhruv Goyani · American Heritage School, Class of 2027 · Presented at the 2026 IEEE 20th International Conference on Computer Science and Information Technologies (CSIT), October 2026</p>
+
+  <p>I built a program that reads S&amp;P 500 option orders and says long, short, or flat. Over 150 trading days it looked like it could predict the next 15 minutes. The standard test gave t = 8.41. Anything above 1.96 usually counts as significant.</p>
+  <p>It was not real. My program checked the market every 15 seconds, so each 15-minute window overlapped about 67 others. The test counted the same price move dozens of times and thought it had far more evidence than it did.</p>
+
+  <h2>Try it</h2>
+  <p>Each dot below is a fake signal that cannot predict anything. It flips between long and short at random, the way my real signal does. Red dots are the ones the standard test calls "significant." Slide to change how often the market is checked.</p>
+
+  <div class="panel">
+    <label for="speed">Time between checks: <span id="speedLabel"></span></label>
+    <input id="speed" type="range" min="0" max="6" step="1" value="0" aria-describedby="speedLabel">
+    <div class="ticks"><span>15 s</span><span>30 s</span><span>1 m</span><span>2 m</span><span>5 m</span><span>10 m</span><span>15 m</span></div>
+    <div class="grid" id="grid" aria-hidden="true"></div>
+    <p class="big"><b id="hits"></b> of 100 random signals look significant to the standard test.</p>
+    <p class="small">A test that works should fool you about 5 times in 100. The fair test, which treats each trading day as one piece of evidence, stays near <span id="fair"></span> in 100 at every speed.</p>
+    <div class="stats">
+      <div class="stat"><div class="n" id="tn"></div><div class="l">standard t for my real signal</div></div>
+      <div class="stat"><div class="n" id="tc"></div><div class="l">fair (day-clustered) t for my real signal</div></div>
+    </div>
+  </div>
+
+  <p>Same signal, same days. The only thing that changes is how often I look. Checking faster made the standard test more confident and more wrong. The fair test never comes close to 1.96.</p>
+
+  <h2>The paper's result</h2>
+  <table>
+    <tr><th>Test at the 15-minute horizon</th><th class="num">t</th></tr>
+    <tr><td>Standard, every check treated as independent</td><td class="num">8.41</td></tr>
+    <tr><td>Newey-West (corrects for overlap)</td><td class="num">1.79</td></tr>
+    <tr><td>Day-clustered (150 trading days)</td><td class="num">0.87</td></tr>
+    <tr><td>Only returns that share no window (2,487)</td><td class="num">0.34</td></tr>
+  </table>
+  <p>The answer is a null. The signal shows no detectable predictive power, and the study had 80% power to detect a mean signed return of 0.64 basis points.</p>
+  <p>This is an old problem. Lars Peter Hansen and Robert Hodrick worked out how to correct for overlapping forecast windows in 1980. I ran into it on my own data, then measured how fast you can sample before the standard test breaks.</p>
+
+  <h2>Check it yourself</h2>
+  <ul>
+    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade">Code and results on GitHub</a>. Two scripts recompute the main results without any market data, and they run automatically on every change.</li>
+    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/tree/main/extensions">How fast can you sample?</a> The method and full table behind the slider.</li>
+    <li><a href="https://github.com/dhruvgoyani-sketch/daytrade/releases/tag/v1.0-csit2026">Version of the code as presented at CSIT 2026</a>.</li>
+  </ul>
+  <p class="small">The slider shows measured results: 1,000 random placebo signals at each speed, built by shifting my real signal in time within each day. Raw market data comes from a licensed Convex Value subscription and cannot be shared. The repository includes the full code and every derived statistic.</p>
+</main>
+<script>
+  // From extensions/results/sampling_rate_law.csv
+  const DATA = [
+    { s: "15 seconds (my program)", naive: 0.743, fair: 0.044, tn: 8.41, tc: 0.87 },
+    { s: "30 seconds", naive: 0.655, fair: 0.042, tn: 5.02, tc: 0.63 },
+    { s: "1 minute",   naive: 0.539, fair: 0.045, tn: 3.04, tc: 0.48 },
+    { s: "2 minutes",  naive: 0.360, fair: 0.057, tn: 1.86, tc: 0.35 },
+    { s: "5 minutes",  naive: 0.157, fair: 0.046, tn: 0.88, tc: 0.04 },
+    { s: "10 minutes", naive: 0.120, fair: 0.061, tn: 0.73, tc: 0.46 },
+    { s: "15 minutes", naive: 0.066, fair: 0.041, tn: 0.88, tc: 1.05 }
+  ];
+  const grid = document.getElementById("grid");
+  // fixed shuffled order so dots switch on and off consistently
+  const order = Array.from({ length: 100 }, (_, i) => i);
+  let seed = 20261027;
+  const rand = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  for (let i = 99; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const dots = order.map(() => grid.appendChild(document.createElement("span")));
+  const el = id => document.getElementById(id);
+  function render(k) {
+    const d = DATA[k];
+    const n = Math.round(d.naive * 100);
+    order.forEach((pos, rank) => dots[pos].classList.toggle("hit", rank < n));
+    el("speedLabel").textContent = d.s;
+    el("hits").textContent = n;
+    el("fair").textContent = Math.round(d.fair * 100);
+    el("tn").textContent = d.tn.toFixed(2);
+    el("tn").classList.toggle("pass", Math.abs(d.tn) > 1.96);
+    el("tc").textContent = d.tc.toFixed(2);
+  }
+  const slider = el("speed");
+  slider.addEventListener("input", e => render(+e.target.value));
+  render(0);
+</script>
+</body>
+</html>
